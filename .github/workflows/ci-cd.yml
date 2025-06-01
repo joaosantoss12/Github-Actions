@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main 
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v3
+
+    - name: Login no GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Construir imagem Docker
+      run: docker build -t ghcr.io/${{ github.repository }}:latest .
+
+    - name: Push da imagem para o GitHub Packages
+      run: docker push ghcr.io/${{ github.repository }}:latest
+
+    - name: Deploy na VM (SSH)
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.VM_HOST }}
+        username: ${{ secrets.VM_USER }}
+        key: ${{ secrets.VM_SSH_KEY }}
+        script: |
+          docker pull ghcr.io/${{ github.repository }}:latest
+          docker stop hello || true
+          docker rm hello || true
+          docker run -d --name hello -p 80:3000 ghcr.io/${{ github.repository }}:latest
