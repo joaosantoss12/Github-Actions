@@ -30,11 +30,9 @@ jobs:
       - name: Push da imagem para o GitHub Packages
         run: docker push ghcr.io/${{ github.repository }}:latest
 
-      - name: Deploy na VM (SSH)
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          script: |
-            docker pull ghcr.io/${{ github.repository }}:latest
-            docker stop hello || true
-            docker rm hello || true
-            docker run -d --name hello -p 80:3000 ghcr.io/${{ github.repository }}:latest
+      - name: Deploy na VM (Local)
+        run: |
+          docker pull ghcr.io/${{ github.repository }}:latest
+          docker stop hello || true
+          docker rm hello || true
+          docker run -d --name hello -p 80:3000 ghcr.io/${{ github.repository }}:latest
