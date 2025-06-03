@@ -7,33 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: QA
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v3
-
-      - name: Login no GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Construir imagem Docker
-        run: docker build -t ghcr.io/${{ github.repository }}:latest .
-
-      - name: Push da imagem para o GitHub Packages
-        run: docker push ghcr.io/${{ github.repository }}:latest
-
-      - name: Deploy na VM (Local)
-        run: |
-          docker pull ghcr.io/${{ github.repository }}:latest
-          docker stop hello || true
-          docker rm hello || true
-          docker run -d --name hello -p 80:3000 ghcr.io/${{ github.repository }}:latest
-
-  build-and-deploy-PROD:
-    runs-on: PROD
+    runs-on: self-hosted
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
